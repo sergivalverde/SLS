@@ -15,13 +15,7 @@ function [nifti_out] = load_compressed_nii(image_path)
 % sergi.valverde@udg.edu
 %
 % *************************************************************************
-
-%
-%    
-%  April 2015 Sergi Valverde
-%  sergi.valverde@udg.edu
-% ------------------------------------------------------------------------
-      
+ 
      % generate a new identifier for the current image
      s = clock;
      tmp_id = num2str(round(rand*1000*s(6)));

@@ -57,12 +57,13 @@ for i=3:3%size(dir_names,1)
     % 2) LESION SEGMENTATION 
     % ********************************************************************
     tic;
-    lesion_mask = lesionSegmentationTool(flair_img, spm8_img, alpha, omega_t, omega_n, min_size);
+    [lesion_mask] = lesionSegmentationTool(flair_img, spm8_img, alpha, omega_t, omega_n, min_size);
     toc;
         
-    % save the result
+    % store the result
     flair_scan.img = lesion_mask;  
     save_compressed_nii(flair_scan, [image_folder,'/',current_scan,'/final_mask']);
+    
     
 end
     

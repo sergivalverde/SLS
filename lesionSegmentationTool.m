@@ -38,7 +38,7 @@ function [lesion_mask] = lesionSegmentationTool(input_image, tissueProb, alpha, 
     gm_flair = input_image(gm_mask);
     [mu, sigma] = compute_fwhm(gm_flair,512);
     T = mu + (alpha * sigma);
-    %T = 403.419; % MATCHING THE SAME T (TESTING)
+    T = 403.419; % MATCHING THE SAME T (TESTING)
     thresholded_mask = input_image >= T;
     disp(['Threshold: ', num2str(T), ' (',num2str(mu),' + ',num2str(alpha),' * ',num2str(sigma),')']);
     
@@ -50,7 +50,7 @@ function [lesion_mask] = lesionSegmentationTool(input_image, tissueProb, alpha, 
     %   3D. (followin c++ implementation)
     % ********************************************************************
     
-    % Find connected components
+    % Find connected components in 3D
     CC = bwconncomp(thresholded_mask,6);
     candidate_regions = labelmatrix(CC);
     candidate_labels = unique(nonzeros(candidate_regions));
@@ -61,11 +61,9 @@ function [lesion_mask] = lesionSegmentationTool(input_image, tissueProb, alpha, 
     labels_filter_1 = cellfun(@(x) numel(x) < min_size, CC.PixelIdxList);
     candidate_labels(labels_filter_1) = 0;
     
-    % RULE 2). omega_t percentage of lesion voxels either in GM and WM
-    labels_filter_gm = cellfun(@(x) (sum(gm_mask(x)) / numel(x)) < omega_t, CC.PixelIdxList );
-    labels_filter_wm = cellfun(@(x) (sum(wm_mask(x)) / numel(x)) < omega_t, CC.PixelIdxList );
-    labels_filter_2 = labels_filter_gm & labels_filter_wm;
-    %candidate_labels(labels_filter_2) = 0;  % NOT WORKING :(
+    % RULE 2). omega_t percentage of lesion voxels either GM and WM 
+    labels_filter_2 = cellfun(@(x) ((sum(gm_mask(x)) + sum(wm_mask(x))) / numel(x)) < omega_t, CC.PixelIdxList);
+    candidate_labels(labels_filter_2) = 0;  
   
     
     % RULE 3) Omega_n Percentage of neighbors as WM
@@ -88,12 +86,17 @@ function [lesion_mask] = lesionSegmentationTool(input_image, tissueProb, alpha, 
             %    continue;
             %end
             %}
-            boundary_region_voxels = get_3D_neighbors(size(candidate_regions), region_voxels);
-            perc_wm_elem = sum(wm_mask(boundary_region_voxels)) / numel(boundary_region_voxels);
+            
+            % the level neighborhood is not passed as argument to the main
+            % function (fixed to 1 as the original SLS function)
+            boundary_region_voxels = get_3D_neighbors(size(candidate_regions), region_voxels,1);
+            boundary_voxels = boundary_region_voxels{1};
+            perc_wm_elem = sum(wm_mask(boundary_voxels)) / numel(boundary_voxels);
             if perc_wm_elem >= omega_n
                 lesion_mask(region_voxels) = 1;
                 num_lesions = num_lesions +1;
             end
     end
     disp(['Final number of lesions: ', num2str(num_lesions)]);
+    
 end
