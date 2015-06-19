@@ -35,10 +35,11 @@ function [lesion_mask] = lesionSegmentationTool(input_image, tissueProb, alpha, 
     %
     % ********************************************************************
     
-    gm_flair = input_image(gm_mask);
+    %gm_flair = input_image .* gm_mask;
+    gm_flair = input_image(gm_mask == 1);
     [mu, sigma] = compute_fwhm(gm_flair,512);
     T = mu + (alpha * sigma);
-    T = 403.419; % MATCHING THE SAME T (TESTING)
+    %T = 403.419; % MATCHING THE SAME T (TESTING)
     thresholded_mask = input_image >= T;
     disp(['Threshold: ', num2str(T), ' (',num2str(mu),' + ',num2str(alpha),' * ',num2str(sigma),')']);
     
@@ -65,6 +66,7 @@ function [lesion_mask] = lesionSegmentationTool(input_image, tissueProb, alpha, 
     labels_filter_2 = cellfun(@(x) ((sum(gm_mask(x)) + sum(wm_mask(x))) / numel(x)) < omega_t, CC.PixelIdxList);
     candidate_labels(labels_filter_2) = 0;  
   
+    % so far, rule 1 and rule 2 a
     
     % RULE 3) Omega_n Percentage of neighbors as WM
     candidate_labels = nonzeros(candidate_labels);

@@ -17,12 +17,22 @@ function [mu,sigma] = compute_fwhm(input, num_bins)
 % ------------------------------------------------------------------------
   
     
+    %[h_frequencies_, h_centers_] = hist(input, num_bins);
+    %h_frequencies = h_frequencies_(2:end);
+    %h_centers = h_centers_(2:end);
+    
     [h_frequencies, h_centers] = hist(input, num_bins);
+    
     [maxbin, pos_maxbin] = max(h_frequencies);
+    
+    %[~, freq_pos] = sort(h_frequencies,'descend');
+    
+    %pos_maxbin = freq_pos(2)
+    %maxbin = h_frequencies(pos_maxbin)
     
     % mu estimation: 
     % mu estimation appears different to ITK. Computed using both ways 
-    mu = max(h_centers(pos_maxbin));
+    mu = h_centers(pos_maxbin);
     disp([num2str(pos_maxbin), ' - ', num2str(mu)]);
     
     % sigma estimation
