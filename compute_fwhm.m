@@ -21,8 +21,9 @@ function [mu,sigma] = compute_fwhm(input, num_bins)
     %h_frequencies = h_frequencies_(2:end);
     %h_centers = h_centers_(2:end);
     
-    [h_frequencies, h_centers] = hist(input, num_bins);
-    
+    [h_frequencies, h_centers] = hist(input, num_bins);    
+    h_frequencies(1) = 0;
+        
     [maxbin, pos_maxbin] = max(h_frequencies);
     
     %[~, freq_pos] = sort(h_frequencies,'descend');
