@@ -35,11 +35,9 @@ function [lesion_mask] = lesionSegmentationTool(input_image, tissueProb, alpha, 
     %
     % ********************************************************************
     
-    %gm_flair = input_image .* gm_mask;
     gm_flair = input_image(gm_mask == 1);
     [mu, sigma] = compute_fwhm(gm_flair,512);
     T = mu + (alpha * sigma);
-    %T = 403.419; % MATCHING THE SAME T (TESTING)
     thresholded_mask = input_image >= T;
     disp(['Threshold: ', num2str(T), ' (',num2str(mu),' + ',num2str(alpha),' * ',num2str(sigma),')']);
     
@@ -66,33 +64,25 @@ function [lesion_mask] = lesionSegmentationTool(input_image, tissueProb, alpha, 
     labels_filter_2 = cellfun(@(x) ((sum(gm_mask(x)) + sum(wm_mask(x))) / numel(x)) < omega_t, CC.PixelIdxList);
     candidate_labels(labels_filter_2) = 0;  
   
-    % so far, rule 1 and rule 2 a
     
     % RULE 3) Omega_n Percentage of neighbors as WM
+    % so far, have to visit each lesion candidate with a for loop :(
     candidate_labels = nonzeros(candidate_labels);
     num_lesions = 0;
     for l=candidate_labels'
             % current label 
             region_voxels = find(candidate_regions == l);
-            %RULE 1 and 2 are computed more efficiently above, reducing the
-            %number of labels to visit.
-            %area_region = numel(region_voxels);
-            % 1. 3d lesion size has to be higher than min_size parameter
-            %if area_region < min_size
-            %    continue;
-            %end
-            % 2. omega_t percentage of lesion voxels either in GM and WM
-            %gm_el = sum(gm_mask(region_voxels)) / area_region;
-            %wm_el = sum(wm_mask(region_voxels)) / area_region;
-            %if (gm_el < omega_t) && (wm_el < omega_t)
-            %    continue;
-            %end
-            %}
             
-            % the level neighborhood is not passed as argument to the main
-            % function (fixed to 1 as the original SLS function)
-            boundary_region_voxels = get_3D_neighbors(size(candidate_regions), region_voxels,1);
-            boundary_voxels = boundary_region_voxels{1};
+            % default config for neighbors: 24 connectivity in 3D (radius 1)
+            % Neighbor voxels for each region are found by substracting the
+            % total neighbors of the candidate region and the same
+            % candidate region. Not shure if efficient :/
+            boundary_region_voxels = compute_neighborhoods(region_voxels, size(candidate_regions), 1,3);
+            candidate_regions(boundary_region_voxels) = l;
+            candidate_regions(region_voxels) = 0;
+            boundary_voxels = find(candidate_regions == l);
+            
+            %boundary_voxels = boundary_region_voxels{1};
             perc_wm_elem = sum(wm_mask(boundary_voxels)) / numel(boundary_voxels);
             if perc_wm_elem >= omega_n
                 lesion_mask(region_voxels) = 1;
