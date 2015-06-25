@@ -10,7 +10,7 @@ An implementation of the SLS toolbox originally developed in C++ into Matlab.
 We have evaluated the performance of the Matlab implementation against the original C++ code. First, we evaluate the Dice coefficient (DSC)  between the final lesion masks obtained with both SLS implementations. The DSC values between implementations are higher than
 
 
-[SLS-MSLS Dice coefficients](DSC_between_masks.png)
+![SLS-MSLS Dice coefficients](DSC_between_masks.png)
 
 ## Usage:
 
